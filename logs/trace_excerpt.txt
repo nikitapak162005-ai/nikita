@@ -1,0 +1,39 @@
+# Merged Lamport event trace (Task B2)
+# Scenario: client-1 Increment x twice; client-2 Increment y twice; client-3 Get only.
+# NOTE: regenerate on your own machine; values interleave differently each run.
+
+## client-1.log
+[client-1] SEND   Increment(counter=x, delta=1) L=1
+[client-1] RECV   IncrementReply(new_value=1) L=5 (received L=4)
+[client-1] SEND   Increment(counter=x, delta=1) L=6
+[client-1] RECV   IncrementReply(new_value=2) L=10 (received L=9)
+
+## client-2.log
+[client-2] SEND   Increment(counter=y, delta=1) L=1
+[client-2] RECV   IncrementReply(new_value=1) L=13 (received L=12)
+[client-2] SEND   Increment(counter=y, delta=1) L=14
+[client-2] RECV   IncrementReply(new_value=2) L=18 (received L=17)
+
+## client-3.log
+[client-3] SEND   Get(counter=x) L=1
+[client-3] RECV   GetReply(value=2, found=True) L=20 (received L=19)
+[client-3] SEND   Get(counter=y) L=21
+[client-3] RECV   GetReply(value=2, found=True) L=24 (received L=23)
+
+## replica-A.log
+[replica-A] RECV   Increment(counter=x, delta=1) L=2 (received L=1)
+[replica-A] APPLY  counter=x -> 1 L=3
+[replica-A] SEND   IncrementReply(new_value=1, duplicate=False) L=4
+[replica-A] RECV   Increment(counter=x, delta=1) L=7 (received L=6)
+[replica-A] APPLY  counter=x -> 2 L=8
+[replica-A] SEND   IncrementReply(new_value=2, duplicate=False) L=9
+[replica-A] RECV   Increment(counter=y, delta=1) L=10 (received L=1)
+[replica-A] APPLY  counter=y -> 1 L=11
+[replica-A] SEND   IncrementReply(new_value=1, duplicate=False) L=12
+[replica-A] RECV   Increment(counter=y, delta=1) L=15 (received L=14)
+[replica-A] APPLY  counter=y -> 2 L=16
+[replica-A] SEND   IncrementReply(new_value=2, duplicate=False) L=17
+[replica-A] RECV   Get(counter=x) L=18 (received L=1)
+[replica-A] SEND   GetReply(value=2, found=True) L=19
+[replica-A] RECV   Get(counter=y) L=22 (received L=21)
+[replica-A] SEND   GetReply(value=2, found=True) L=23

@@ -1,0 +1,33 @@
+syntax = "proto3";
+package counter;
+
+// Replicated counter service.
+// Increment adds a delta to a named counter; Get reads its current value.
+service Counter {
+  rpc Increment (IncrementRequest) returns (IncrementReply);
+  rpc Get (GetRequest) returns (GetReply);
+}
+
+message IncrementRequest {
+  string counter_id      = 1;
+  int64  delta           = 2;
+  string idempotency_key = 3;   // client-generated, unique per logical operation
+  uint64 lamport_time    = 4;   // Lamport logical clock value of the sender
+}
+
+message IncrementReply {
+  int64  new_value     = 1;
+  bool   was_duplicate = 2;
+  uint64 lamport_time  = 4;      // Lamport logical clock value of the server
+}
+
+message GetRequest {
+  string counter_id   = 1;
+  uint64 lamport_time = 4;
+}
+
+message GetReply {
+  int64  value        = 1;
+  bool   found        = 2;
+  uint64 lamport_time = 4;
+}
