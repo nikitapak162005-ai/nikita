@@ -1,9 +1,9 @@
 # Replicated Counter Service — Test Report
 
 **Course:** Distributed Systems
-**Author:** [YOUR NAME]
-**Repository:** [YOUR GITHUB URL]
-**Date:** [DATE]
+**Author:** Nikita
+**Repository:** https://github.com/nikitapak162005-ai/nikita
+**Date:** 8.10.2026
 
 > Replace every `[PASTE REAL ... HERE]` placeholder with results produced on your
 > machine. Do not invent results. Export this file to `report.pdf` when complete.
