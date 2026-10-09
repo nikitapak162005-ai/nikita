@@ -41,7 +41,7 @@ def main():
         print("No log lines found.")
         return
 
-    # Sort by the Lamport value shown for each event.
+    
     all_lines.sort(key=get_lamport_time)
 
     excerpt = all_lines[:MAX_LINES]

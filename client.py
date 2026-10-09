@@ -1,18 +1,4 @@
-"""Counter client: talks to one or more replicas over gRPC.
 
-Key responsibilities:
-  - every RPC carries a deadline (default 2.0 s);
-  - on DEADLINE_EXCEEDED or UNAVAILABLE, retry at most 3 times with
-    exponential backoff (0.2 s, 0.4 s, 0.8 s), REUSING the same idempotency key;
-  - a quorum Increment is sent to all replicas and is committed only when a
-    majority acknowledge it (2 of 3).
-
-CLI:
-    python client.py incr likes:post-42 --by 5
-    python client.py get likes:post-42
-    python client.py --replicas 127.0.0.1:50051 incr x --by 5 --key demo-key
-    python client.py --name client-1 --replicas 127.0.0.1:50051 scenario client-1
-"""
 import argparse
 import os
 import time
@@ -57,10 +43,7 @@ class CounterClient:
 
     # ---- one RPC against one replica, with retries ---------------------
     def _increment_on_stub(self, stub, counter_id, delta, key):
-        """Send Increment to one replica. Retry on transient errors with the SAME key.
-
-        Returns the IncrementReply, or None if every attempt failed.
-        """
+        
         attempts = self._max_retries + 1          # initial attempt + N retries
         for attempt in range(attempts):
             send_l = self._clock.tick()            # SEND event
@@ -82,17 +65,11 @@ class CounterClient:
                 return None
         return None
 
-    def increment_single(self, counter_id, delta, key=None):
-        """Increment against the FIRST replica only. Returns the reply or None."""
         if key is None:
             key = str(uuid.uuid4())
         return self._increment_on_stub(self._stubs[0], counter_id, delta, key)
 
     def quorum_increment(self, counter_id, delta, key=None):
-        """Send Increment to ALL replicas in parallel; commit on a majority of acks.
-
-        Returns a dict: committed, value, acks, total, was_duplicate.
-        """
         if key is None:
             key = str(uuid.uuid4())   # one key per logical operation, reused on retries
         results = []
@@ -119,10 +96,6 @@ class CounterClient:
         return self.quorum_increment(counter_id, delta, key=key)
 
     def get(self, counter_id):
-        """Read the counter from any single reachable replica.
-
-        Returns a dict: value, found, replica (address) or None if none reachable.
-        """
         for stub, addr in zip(self._stubs, self._replicas):
             send_l = self._clock.tick()
             request = counter_pb2.GetRequest(counter_id=counter_id, lamport_time=send_l)
@@ -143,7 +116,6 @@ class CounterClient:
 
 
 def run_scenario(client, who):
-    """Lamport-trace scenario. client-1/2 do two increments; client-3 only Gets."""
     if who == "client-1":
         client.quorum_increment("x", 1)
         client.quorum_increment("x", 1)
